@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mindease-app:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+    container_name: mindease-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:mindease_secure_password@postgres:5432/mindease?schema=public
+      - JWT_ACCESS_SECRET=mindease_production_jwt_access_secret_32_chars_min
+      - JWT_REFRESH_SECRET=mindease_production_jwt_refresh_secret_32_chars_min
+      - DATA_ENCRYPTION_KEY=mindease_production_aes256_encryption_key_32bytes
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: mindease-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mindease_secure_password
+      - POSTGRES_DB=mindease
+    ports:
+      - "5432:5432"
+    volumes:
+      - mindease_pgdata:/var/lib/postgresql/data
+
+volumes:
+  mindease_pgdata:

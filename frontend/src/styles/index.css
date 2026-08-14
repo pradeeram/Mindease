@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #f8f9fa;
+    --text-primary: #191c1d;
+    --font-headline: "Source Serif 4", Georgia, serif;
+    --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  }
+
+  body {
+    background-color: #f8f9fa;
+    color: #191c1d;
+    font-family: var(--font-body);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline);
+  }
+}
+
+/* Custom Soothing Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f3f4;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c4c6cd;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8aa399;
+}
+
+/* Glassmorphism & Soft Layers */
+.glass-card {
+  background: rgba(253, 253, 253, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(52, 58, 64, 0.08);
+}
+
+.clinical-card {
+  background: #fdfdfd;
+  border: 1px solid rgba(52, 58, 64, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.active-field-focus {
+  background-color: #f6f9ee;
+  border-color: #4a6274;
+}
+
+/* Audio wave animation bars */
+.wave-bar {
+  animation: wave-bar 1.2s ease-in-out infinite;
+}
+
+.wave-bar:nth-child(1) { animation-delay: 0.0s; }
+.wave-bar:nth-child(2) { animation-delay: 0.2s; }
+.wave-bar:nth-child(3) { animation-delay: 0.4s; }
+.wave-bar:nth-child(4) { animation-delay: 0.1s; }
+.wave-bar:nth-child(5) { animation-delay: 0.3s; }
+.wave-bar:nth-child(6) { animation-delay: 0.5s; }
+.wave-bar:nth-child(7) { animation-delay: 0.2s; }

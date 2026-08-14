@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="8" fill="#2C3E50"/>
+  <!-- Gentle Serene Lotus / Mind Ripple -->
+  <path d="M16 7C14.5 12 11 15 8 16C11 17 14.5 20 16 25C17.5 20 21 17 24 16C21 15 17.5 12 16 7Z" fill="#8AA399"/>
+  <circle cx="16" cy="16" r="3" fill="#DDE5B6"/>
+</svg>

@@ -2,9 +2,9 @@ import { PrismaClient } from '@prisma/client';
 
 function getResolvedDatabaseUrl(): string {
   const directFallback = 'postgresql://postgres:MindEaseDb2026@db.zuxnxwihlvgpquwrqlew.supabase.co:5432/postgres';
-  const rawUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  let rawUrl = (process.env.DIRECT_URL || process.env.DATABASE_URL || '').replace(/^["']|["']$/g, '').trim();
 
-  if (!rawUrl || rawUrl.trim() === '' || rawUrl.includes('file:')) {
+  if (!rawUrl || rawUrl.includes('file:')) {
     return directFallback;
   }
 
@@ -12,7 +12,7 @@ function getResolvedDatabaseUrl(): string {
   try {
     const poolerMatch = rawUrl.match(/postgres\.([a-z0-9]+):([^@]+)@[^:]+:6543\/postgres/i);
     if (poolerMatch) {
-      const projectRef = poolerMatch[1];
+      const projectRef = poolerMatch[1] || 'zuxnxwihlvgpquwrqlew';
       const password = poolerMatch[2];
       return `postgresql://postgres:${password}@db.${projectRef}.supabase.co:5432/postgres`;
     }

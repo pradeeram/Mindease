@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MoodProvider } from './context/MoodContext';
 import { Navbar } from './components/layout/Navbar';
@@ -107,6 +108,7 @@ export const App: React.FC = () => {
           <AppContent />
         </Router>
       </MoodProvider>
+      <Analytics />
     </AuthProvider>
   );
 };

@@ -83,9 +83,9 @@ export class UshaEngine {
       }
     };
 
-    // Try Gemini 1.5-flash or 2.0-flash
+    const modelName = config.ai.geminiModel || 'gemini-flash-latest';
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${config.ai.geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${config.ai.geminiApiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -99,7 +99,8 @@ export class UshaEngine {
     }
 
     const data = await response.json();
-    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const candidateText = parts.map((p: any) => p.text || '').filter(Boolean).join('\n');
     return candidateText || '';
   }
 

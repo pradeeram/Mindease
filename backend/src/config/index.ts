@@ -24,6 +24,7 @@ export const config = {
   
   ai: {
     geminiApiKey: process.env.GEMINI_API_KEY || '',
+    geminiModel: process.env.GEMINI_MODEL || 'gemini-flash-latest',
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
     ollamaBaseUrl: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
   },

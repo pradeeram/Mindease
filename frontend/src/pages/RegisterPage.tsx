@@ -88,23 +88,28 @@ export const RegisterPage: React.FC = () => {
               We have sent a verification link to <strong className="text-slate-deep">{email}</strong>. Please check your inbox and click the link to activate your account.
             </div>
 
-            {devVerificationToken && (
-              <div className="p-3 bg-surface-container border border-charcoal-soft/20 rounded-lg text-left text-xs space-y-1">
-                <span className="font-bold text-slate-deep block">🧪 Local Dev Verification Link:</span>
-                <Link
-                  to={`/verify-email?token=${devVerificationToken}`}
-                  className="text-clinical-blue underline break-all block"
+            {devVerificationToken ? (
+              <div className="p-3.5 bg-sage-light border border-sage-accent/40 rounded-xl text-center space-y-2 shadow-sm">
+                <p className="text-xs text-slate-deep font-semibold">
+                  Instant Account Activation Link:
+                </p>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={() => navigate(`/verify-email?token=${devVerificationToken}`)}
+                  className="w-full justify-center"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  Click here to verify email instantly
+                  Activate & Enter MindEase
+                </Button>
+              </div>
+            ) : (
+              <div className="pt-2">
+                <Link to="/login" className="text-xs font-bold text-clinical-blue hover:underline">
+                  Return to Login
                 </Link>
               </div>
             )}
-
-            <div className="pt-2">
-              <Link to="/login" className="text-xs font-bold text-clinical-blue hover:underline">
-                Return to Login
-              </Link>
-            </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">

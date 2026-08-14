@@ -24,7 +24,9 @@ import {
   HelpCircle,
   Volume2,
   Play,
-  Sparkles
+  Sparkles,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { speechService, VOICE_PRESETS, VoicePresetKey } from '../services/speech';
@@ -54,11 +56,13 @@ export const SettingsPage: React.FC = () => {
   // Disable MFA
   const [isDisableMfaOpen, setIsDisableMfaOpen] = useState<boolean>(false);
   const [disablePassword, setDisablePassword] = useState<string>('');
+  const [showDisablePassword, setShowDisablePassword] = useState<boolean>(false);
   const [disableCode, setDisableCode] = useState<string>('');
 
   // Delete Account Modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [deletePassword, setDeletePassword] = useState<string>('');
+  const [showDeletePassword, setShowDeletePassword] = useState<boolean>(false);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [deleteError, setDeleteError] = useState<string>('');
 
@@ -71,6 +75,7 @@ export const SettingsPage: React.FC = () => {
   // Withdraw Consent Modal (DPDP Act Sec 6(4))
   const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState<boolean>(false);
   const [withdrawPassword, setWithdrawPassword] = useState<string>('');
+  const [showWithdrawPassword, setShowWithdrawPassword] = useState<boolean>(false);
   const [isWithdrawing, setIsWithdrawing] = useState<boolean>(false);
   const [withdrawError, setWithdrawError] = useState<string>('');
 
@@ -631,14 +636,24 @@ export const SettingsPage: React.FC = () => {
             <label className="block text-xs font-bold text-slate-deep mb-1">
               Confirm your password to withdraw consent:
             </label>
-            <input
-              type="password"
-              required
-              value={withdrawPassword}
-              onChange={(e) => setWithdrawPassword(e.target.value)}
-              placeholder="Enter your account password"
-              className="w-full px-3 py-2 text-xs bg-surface border border-charcoal-soft/15 rounded focus:ring-1 focus:ring-amber-700"
-            />
+            <div className="relative">
+              <input
+                type={showWithdrawPassword ? 'text' : 'password'}
+                required
+                value={withdrawPassword}
+                onChange={(e) => setWithdrawPassword(e.target.value)}
+                placeholder="Enter your account password"
+                className="w-full pl-3 pr-9 py-2 text-xs bg-surface border border-charcoal-soft/15 rounded focus:ring-1 focus:ring-amber-700"
+              />
+              <button
+                type="button"
+                onClick={() => setShowWithdrawPassword(!showWithdrawPassword)}
+                aria-label={showWithdrawPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-2.5 top-2 text-on-surface-variant hover:text-slate-deep transition-colors focus:outline-none"
+              >
+                {showWithdrawPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-3 border-t border-charcoal-soft/10">
@@ -660,7 +675,7 @@ export const SettingsPage: React.FC = () => {
         title="Enroll in Two-Factor Authentication"
         description="Scan this QR code with Google Authenticator, Microsoft Authenticator, or Authy."
       >
-        <form onSubmit={handleVerifyMfa} className="space-y-4 mt-4 text-center">
+        <form onSubmit={handleVerifyMfa} className="space-y-3 mt-4 text-center">
           {mfaQrCode && (
             <div className="p-3 bg-bone-white border border-charcoal-soft/20 rounded-xl inline-block shadow-sm">
               <img src={mfaQrCode} alt="TOTP QR Code" className="w-48 h-48 mx-auto" />
@@ -677,10 +692,8 @@ export const SettingsPage: React.FC = () => {
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-bold text-slate-deep mb-1 text-left">
-              Enter 6-Digit Authenticator Code
-            </label>
+          <div className="space-y-2 text-left">
+            <label className="block text-xs font-bold text-slate-deep">Enter 6-Digit Authenticator Code</label>
             <input
               type="text"
               required
@@ -688,16 +701,16 @@ export const SettingsPage: React.FC = () => {
               value={mfaCode}
               onChange={(e) => setMfaCode(e.target.value.replace(/[^0-9]/g, ''))}
               placeholder="123456"
-              className="w-full text-center text-lg font-mono tracking-widest px-3 py-2 bg-surface border border-charcoal-soft/15 rounded focus:ring-2 focus:ring-slate-deep focus:outline-none"
+              className="w-full text-center text-xl font-mono tracking-widest px-3 py-2 bg-surface border border-charcoal-soft/15 rounded-lg focus:ring-2 focus:ring-slate-deep focus:outline-none"
             />
           </div>
 
-          <div className="flex justify-end space-x-2 pt-2 border-t border-charcoal-soft/10">
+          <div className="flex justify-end space-x-2 pt-3 border-t border-charcoal-soft/10">
             <Button type="button" variant="ghost" size="sm" onClick={() => setIsMfaModalOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" size="sm" isLoading={isMfaLoading} disabled={mfaCode.length !== 6}>
-              Verify & Activate MFA
+            <Button type="submit" variant="primary" size="sm" isLoading={isMfaLoading}>
+              Verify & Enable 2FA
             </Button>
           </div>
         </form>
@@ -707,11 +720,11 @@ export const SettingsPage: React.FC = () => {
       <Modal
         isOpen={isDisableMfaOpen}
         onClose={() => setIsDisableMfaOpen(false)}
-        maxWidth="sm"
+        maxWidth="md"
         title="Disable Two-Factor Authentication"
-        description="Please confirm with your current password and 6-digit code."
+        description="Verify your credentials to remove two-factor authentication from your account."
       >
-        <form onSubmit={handleDisableMfa} className="space-y-4 mt-4">
+        <form onSubmit={handleDisableMfa} className="space-y-3 mt-4">
           {mfaError && (
             <div className="p-2.5 bg-error-container text-error rounded text-xs font-semibold">
               {mfaError}
@@ -720,13 +733,23 @@ export const SettingsPage: React.FC = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-deep mb-1">Account Password</label>
-            <input
-              type="password"
-              required
-              value={disablePassword}
-              onChange={(e) => setDisablePassword(e.target.value)}
-              className="w-full px-3 py-1.5 text-xs bg-surface border border-charcoal-soft/15 rounded"
-            />
+            <div className="relative">
+              <input
+                type={showDisablePassword ? 'text' : 'password'}
+                required
+                value={disablePassword}
+                onChange={(e) => setDisablePassword(e.target.value)}
+                className="w-full pl-3 pr-9 py-1.5 text-xs bg-surface border border-charcoal-soft/15 rounded"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDisablePassword(!showDisablePassword)}
+                aria-label={showDisablePassword ? 'Hide password' : 'Show password'}
+                className="absolute right-2.5 top-1.5 text-on-surface-variant hover:text-slate-deep transition-colors focus:outline-none"
+              >
+                {showDisablePassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
 
           <div>
@@ -780,14 +803,24 @@ export const SettingsPage: React.FC = () => {
             <label className="block text-xs font-bold text-slate-deep mb-1">
               Confirm your password to proceed:
             </label>
-            <input
-              type="password"
-              required
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              placeholder="Enter your account password"
-              className="w-full px-3 py-2 text-xs bg-surface border border-charcoal-soft/15 rounded focus:ring-1 focus:ring-error"
-            />
+            <div className="relative">
+              <input
+                type={showDeletePassword ? 'text' : 'password'}
+                required
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                placeholder="Enter your account password"
+                className="w-full pl-3 pr-9 py-2 text-xs bg-surface border border-charcoal-soft/15 rounded focus:ring-1 focus:ring-error"
+              />
+              <button
+                type="button"
+                onClick={() => setShowDeletePassword(!showDeletePassword)}
+                aria-label={showDeletePassword ? 'Hide password' : 'Show password'}
+                className="absolute right-2.5 top-2 text-on-surface-variant hover:text-slate-deep transition-colors focus:outline-none"
+              >
+                {showDeletePassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2 pt-3 border-t border-charcoal-soft/10">

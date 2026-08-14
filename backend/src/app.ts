@@ -14,6 +14,7 @@ import { chatRouter } from './modules/ai-chat/chat.router';
 import { notificationRouter } from './modules/notifications/notification.router';
 import { resourcesRouter } from './modules/resources/resources.router';
 import { privacyRouter } from './modules/privacy/privacy.router';
+import { prisma } from './db/prisma';
 
 const app = express();
 
@@ -75,7 +76,6 @@ app.get('/api/health', (req, res) => {
 // Diagnostic probe for database connectivity
 app.get('/api/db-diagnostics', async (req, res) => {
   try {
-    const { prisma } = await import('./db/prisma');
     const count = await prisma.user.count();
     res.status(200).json({
       success: true,

@@ -1,7 +1,7 @@
 {
   "version": 2,
   "installCommand": "npm install --include=dev",
-  "buildCommand": "cd frontend && npx tsc && npx vite build",
+  "buildCommand": "npx prisma generate --schema=backend/prisma/schema.prisma && cd frontend && npx tsc && npx vite build",
   "outputDirectory": "frontend/dist",
   "framework": "vite",
   "rewrites": [

@@ -6,6 +6,8 @@ export interface User {
   avatar?: string;
   mfaEnabled: boolean;
   theme: string;
+  aiName?: string;
+  aiVoice?: string;
   baselineScore?: number;
   onboarded: boolean;
   createdAt: string;

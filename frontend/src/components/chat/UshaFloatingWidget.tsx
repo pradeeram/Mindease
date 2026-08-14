@@ -13,6 +13,7 @@ export const UshaFloatingWidget: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [aiName, setAiName] = useState<string>(speechService.getActiveAiName());
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState<string>('');
@@ -27,19 +28,23 @@ export const UshaFloatingWidget: React.FC = () => {
   const isChatPage = location.pathname === '/chat';
 
   useEffect(() => {
+    setAiName(speechService.getActiveAiName());
+  }, [user]);
+
+  useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([
         {
           id: 'welcome',
           sessionId: '',
           role: 'usha',
-          content: `Hello ${user ? user.name.split(' ')[0] : 'friend'}, I am USHA, your CBT wellness companion. How are you feeling in your body and mind right now?`,
+          content: `Hello ${user ? user.name.split(' ')[0] : 'friend'}! I am ${aiName}, your CBT wellness companion. How are you feeling in your mind and body right now?`,
           isCrisisTriggered: false,
           timestamp: new Date().toISOString(),
         }
       ]);
     }
-  }, [isOpen, user]);
+  }, [isOpen, user, aiName]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -72,6 +77,7 @@ export const UshaFloatingWidget: React.FC = () => {
         const res = await api.post('/chat/message', {
           sessionId,
           message: text.trim(),
+          aiName,
         });
 
         const data = res.data?.data;
@@ -97,7 +103,7 @@ export const UshaFloatingWidget: React.FC = () => {
             id: `guest-${Date.now()}`,
             sessionId: '',
             role: 'usha',
-            content: "Thank you for reaching out. Please sign in or create an account to securely save your reflections, mood logs, and personalized CBT insights.",
+            content: `Thank you for reaching out. Please sign in or create an account to securely save your reflections with ${aiName}.`,
             isCrisisTriggered: false,
             timestamp: new Date().toISOString(),
           };
@@ -156,7 +162,7 @@ export const UshaFloatingWidget: React.FC = () => {
                     <Sparkles className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-sm font-serif font-bold tracking-wide">USHA Companion</div>
+                    <div className="text-sm font-serif font-bold tracking-wide">{aiName} Companion</div>
                     <div className="text-[10px] text-sage-muted/90 flex items-center">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse" />
                       CBT Wellness Assistant
@@ -219,7 +225,7 @@ export const UshaFloatingWidget: React.FC = () => {
                       {m.content}
                     </div>
 
-                    {/* Quick suggestion pills from USHA */}
+                    {/* Quick suggestion pills */}
                     {m.metadata?.suggestedActions && m.metadata.suggestedActions.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {m.metadata.suggestedActions.map((action, idx) => (
@@ -277,7 +283,7 @@ export const UshaFloatingWidget: React.FC = () => {
                       ? 'bg-red-500 text-white animate-pulse'
                       : 'text-clinical-blue hover:bg-surface-container'
                   }`}
-                  title="Speak to USHA"
+                  title={`Speak to ${aiName}`}
                 >
                   {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
@@ -286,7 +292,7 @@ export const UshaFloatingWidget: React.FC = () => {
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder={isListening ? 'Listening...' : 'Share what is on your mind...'}
+                  placeholder={isListening ? 'Listening...' : `Message ${aiName}...`}
                   className="flex-1 px-3 py-1.5 text-xs bg-surface border border-charcoal-soft/15 rounded-lg focus:outline-none focus:ring-1 focus:ring-clinical-blue"
                 />
 
@@ -308,7 +314,7 @@ export const UshaFloatingWidget: React.FC = () => {
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsOpen(!isOpen)}
           className="w-14 h-14 rounded-full bg-gradient-to-tr from-slate-deep to-clinical-blue text-bone-white shadow-xl flex items-center justify-center border-2 border-sage-muted/30 focus:outline-none focus:ring-4 focus:ring-sage-accent/30 group relative"
-          aria-label="Open USHA Companion"
+          aria-label={`Open ${aiName} Companion`}
         >
           {isOpen ? (
             <X className="w-6 h-6" />

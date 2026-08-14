@@ -5,6 +5,7 @@ import { chatService } from './chat.service';
 const sendMessageSchema = z.object({
   sessionId: z.string().optional(),
   message: z.string().min(1, 'Message cannot be empty.').max(4000),
+  aiName: z.string().max(50).optional(),
 });
 
 const createSessionSchema = z.object({

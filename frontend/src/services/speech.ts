@@ -1,6 +1,6 @@
-// Web Speech API Voice and Audio Synthesis Service for USHA Companion
+// Web Speech API Voice and Audio Synthesis Service for AI Companion
 
-export type VoicePresetKey = 'soft_female' | 'warm_natural' | 'gentle_male' | 'neutral_clarity';
+export type VoicePresetKey = 'soft_female' | 'warm_natural' | 'gentle_male' | 'british_serene' | 'neutral_clarity';
 
 export interface VoicePreset {
   id: VoicePresetKey;
@@ -20,7 +20,7 @@ export const VOICE_PRESETS: Record<VoicePresetKey, VoicePreset> = {
     description: 'Empathetic, gentle cadence designed to reduce anxiety and calm your nervous system.',
     pitch: 1.08,
     rate: 0.90,
-    sampleText: 'Hello, I am USHA. Take a slow breath with me. I am here whenever you need a safe space.',
+    sampleText: 'Hello! Take a slow, gentle breath with me. I am here whenever you need a safe space.',
   },
   warm_natural: {
     id: 'warm_natural',
@@ -40,11 +40,20 @@ export const VOICE_PRESETS: Record<VoicePresetKey, VoicePreset> = {
     rate: 0.90,
     sampleText: 'I am here with you. Let your shoulders drop, and let us work through this together.',
   },
+  british_serene: {
+    id: 'british_serene',
+    name: 'Serene & Mindful (British)',
+    gender: 'Female',
+    description: 'Crisp, articulate and deeply calming tone for structured CBT reframing.',
+    pitch: 1.04,
+    rate: 0.88,
+    sampleText: 'Take a quiet moment for yourself. Notice your surroundings and allow your thoughts to settle.',
+  },
   neutral_clarity: {
     id: 'neutral_clarity',
     name: 'Neutral & Clear',
     gender: 'Neutral',
-    description: 'Balanced, articulate voice ideal for focused CBT worksheets and structured reframing.',
+    description: 'Balanced, articulate voice ideal for focused CBT worksheets and structured exercises.',
     pitch: 1.02,
     rate: 0.96,
     sampleText: 'Let us examine the evidence around this thought and find a more balanced perspective.',
@@ -82,13 +91,27 @@ export class SpeechService {
     }
   }
 
+  getActiveAiName(): string {
+    if (typeof window === 'undefined') return 'USHA';
+    const saved = localStorage.getItem('mindease_ai_name');
+    if (saved && saved.trim().length > 0) return saved.trim();
+    return 'USHA';
+  }
+
+  setActiveAiName(name: string): void {
+    if (typeof window !== 'undefined') {
+      const cleaned = (name || 'USHA').trim().slice(0, 30);
+      localStorage.setItem('mindease_ai_name', cleaned);
+    }
+  }
+
   getActiveVoicePreset(): VoicePresetKey {
     if (typeof window === 'undefined') return 'soft_female';
     const saved = localStorage.getItem('mindease_voice_preset') as VoicePresetKey;
     if (saved && VOICE_PRESETS[saved]) {
       return saved;
     }
-    return 'soft_female'; // Default: Soft female voice
+    return 'soft_female';
   }
 
   setVoicePreset(preset: VoicePresetKey): void {
@@ -177,12 +200,10 @@ export class SpeechService {
     const pool = englishVoices.length > 0 ? englishVoices : voices;
 
     if (presetKey === 'soft_female') {
-      // Prioritize soft, soothing female voices
       const soft = pool.find(v =>
         /(zira|samantha|karen|victoria|female|eva|hazel|moira|catherine|serena)/i.test(v.name)
       );
       if (soft) return soft;
-      // Fallback: any voice containing female or first english voice
       const anyFemale = pool.find(v => /female|woman/i.test(v.name));
       return anyFemale || pool[0];
     }
@@ -199,6 +220,13 @@ export class SpeechService {
         /(david|daniel|alex|male|man|guy|george|oliver|mark)/i.test(v.name)
       );
       return male || pool[0];
+    }
+
+    if (presetKey === 'british_serene') {
+      const british = pool.find(v =>
+        /(en-GB|british|uk|stephanie|libby|george|hazel)/i.test(v.name) || /en_GB/i.test(v.lang)
+      );
+      return british || pool[0];
     }
 
     if (presetKey === 'neutral_clarity') {
@@ -246,8 +274,10 @@ export class SpeechService {
 
   previewVoice(presetKey: VoicePresetKey): void {
     const preset = VOICE_PRESETS[presetKey];
+    const aiName = this.getActiveAiName();
     if (preset) {
-      this.speak(preset.sampleText, undefined, undefined, presetKey);
+      const text = `Hello, I am ${aiName}. ${preset.sampleText}`;
+      this.speak(text, undefined, undefined, presetKey);
     }
   }
 

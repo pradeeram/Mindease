@@ -1,28 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMood } from '../context/MoodContext';
+import { speechService } from '../services/speech';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { PageTransition, FadeIn, StaggerContainer, StaggerItem, HoverCard } from '../components/motion/MotionWrapper';
+import { PageTransition } from '../components/motion/MotionWrapper';
 import {
   Sparkles,
   Smile,
   BookOpen,
   Wind,
   Flame,
-  BarChart3,
   Plus,
   ArrowRight,
-  ShieldAlert,
   Calendar,
-  CheckCircle2
+  CheckCircle2,
+  Sliders
 } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const { entries, stats, openQuickLog } = useMood();
+  const [aiName, setAiName] = useState<string>(speechService.getActiveAiName());
+
+  useEffect(() => {
+    setAiName(speechService.getActiveAiName());
+  }, [user]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -36,30 +41,28 @@ export const DashboardPage: React.FC = () => {
     return new Date(e.loggedAt).toDateString() === today;
   });
 
-  const latestEntry = entries[0];
-
   return (
-    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
       {/* 1. Welcoming Hero Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bone-white border border-charcoal-soft/10 p-6 sm:p-8 rounded-2xl shadow-sm">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 bg-bone-white border border-charcoal-soft/10 p-7 sm:p-9 rounded-2xl shadow-sm">
+        <div className="space-y-2">
           <div className="flex items-center space-x-2">
             <span className="text-xs font-bold uppercase tracking-wider text-clinical-blue">
               {getGreeting()}, {user?.name.split(' ')[0] || 'Friend'}
             </span>
             <span className="text-sm">🌿</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-slate-deep">
+          <h1 className="text-2xl sm:text-4xl font-serif font-bold text-slate-deep tracking-tight">
             How is your mental room feeling today?
           </h1>
-          <p className="text-xs sm:text-sm text-on-surface-variant max-w-xl">
+          <p className="text-xs sm:text-sm text-on-surface-variant max-w-2xl leading-relaxed">
             {todayLogged
               ? `You have completed today's check-in! Your active reflection streak is ${stats?.streakDays || 1} days.`
-              : 'Taking a 60-second pause to notice your feelings creates emotional space.'}
+              : 'Taking a 60-second pause to notice your thoughts and bodily sensations creates emotional space.'}
           </p>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
           {!todayLogged ? (
             <Button
               variant="sage"
@@ -70,7 +73,7 @@ export const DashboardPage: React.FC = () => {
               Daily Check-in
             </Button>
           ) : (
-            <div className="flex items-center space-x-2 bg-sage-light px-3.5 py-2 rounded-lg border border-sage-accent/30 text-xs font-semibold text-slate-deep">
+            <div className="flex items-center space-x-2 bg-sage-light px-4 py-2.5 rounded-xl border border-sage-accent/30 text-xs font-semibold text-slate-deep">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>Checked in today</span>
             </div>
@@ -78,112 +81,112 @@ export const DashboardPage: React.FC = () => {
 
           <Link to="/chat">
             <Button variant="primary" size="lg" leftIcon={<Sparkles className="w-4 h-4 text-sage-muted" />}>
-              USHA Studio
+              {aiName} Studio
             </Button>
           </Link>
         </div>
       </div>
 
       {/* 2. Key Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Streak Metric */}
-        <Card padding="md" className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center">
+        <Card padding="lg" className="flex items-center space-x-4 bg-bone-white border border-charcoal-soft/10 shadow-sm">
+          <div className="w-13 h-13 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center p-3">
             <Flame className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs text-on-surface-variant uppercase font-semibold tracking-wider">
+            <div className="text-[11px] text-on-surface-variant uppercase font-semibold tracking-wider">
               Reflection Streak
             </div>
-            <div className="text-2xl font-serif font-bold text-slate-deep">
-              {stats?.streakDays ?? 0} <span className="text-sm font-sans font-normal text-on-surface-variant">days</span>
+            <div className="text-2xl sm:text-3xl font-serif font-bold text-slate-deep">
+              {stats?.streakDays ?? 0} <span className="text-xs font-sans font-normal text-on-surface-variant">days</span>
             </div>
           </div>
         </Card>
 
         {/* 30-day Average Mood */}
-        <Card padding="md" className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-sage-light text-slate-deep border border-sage-accent/30 flex items-center justify-center">
+        <Card padding="lg" className="flex items-center space-x-4 bg-bone-white border border-charcoal-soft/10 shadow-sm">
+          <div className="w-13 h-13 rounded-2xl bg-sage-light text-slate-deep border border-sage-accent/30 flex items-center justify-center p-3">
             <Smile className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs text-on-surface-variant uppercase font-semibold tracking-wider">
+            <div className="text-[11px] text-on-surface-variant uppercase font-semibold tracking-wider">
               30-Day Average
             </div>
-            <div className="text-2xl font-serif font-bold text-slate-deep">
+            <div className="text-2xl sm:text-3xl font-serif font-bold text-slate-deep">
               {stats?.averageMood ? `${stats.averageMood} / 10` : '—'}
             </div>
           </div>
         </Card>
 
         {/* Total Reflections */}
-        <Card padding="md" className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-clinical-blue-light text-clinical-blue border border-clinical-blue/20 flex items-center justify-center">
+        <Card padding="lg" className="flex items-center space-x-4 bg-bone-white border border-charcoal-soft/10 shadow-sm">
+          <div className="w-13 h-13 rounded-2xl bg-clinical-blue-light text-clinical-blue border border-clinical-blue/20 flex items-center justify-center p-3">
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs text-on-surface-variant uppercase font-semibold tracking-wider">
+            <div className="text-[11px] text-on-surface-variant uppercase font-semibold tracking-wider">
               Logs & Reframes
             </div>
-            <div className="text-2xl font-serif font-bold text-slate-deep">
-              {stats?.totalEntries ?? 0} <span className="text-sm font-sans font-normal text-on-surface-variant">entries</span>
+            <div className="text-2xl sm:text-3xl font-serif font-bold text-slate-deep">
+              {stats?.totalEntries ?? 0} <span className="text-xs font-sans font-normal text-on-surface-variant">entries</span>
             </div>
           </div>
         </Card>
 
         {/* Somatic Reset Shortcut */}
-        <Card padding="md" className="flex items-center space-x-4 bg-gradient-to-r from-surface-container to-surface">
-          <div className="w-12 h-12 rounded-xl bg-slate-deep text-bone-white flex items-center justify-center">
+        <Card padding="lg" className="flex items-center space-x-4 bg-gradient-to-r from-surface-container to-surface border border-charcoal-soft/10 shadow-sm">
+          <div className="w-13 h-13 rounded-2xl bg-slate-deep text-bone-white flex items-center justify-center p-3">
             <Wind className="w-6 h-6" />
           </div>
           <div>
-            <div className="text-xs text-on-surface-variant uppercase font-semibold tracking-wider">
+            <div className="text-[11px] text-on-surface-variant uppercase font-semibold tracking-wider">
               Breathing Guide
             </div>
-            <Link to="/resources" className="text-sm font-bold text-clinical-blue hover:underline flex items-center mt-0.5">
-              4-7-8 Pacer <ArrowRight className="w-3 h-3 ml-1" />
+            <Link to="/resources" className="text-xs sm:text-sm font-bold text-clinical-blue hover:underline flex items-center mt-1">
+              4-7-8 Pacer <ArrowRight className="w-3.5 h-3.5 ml-1" />
             </Link>
           </div>
         </Card>
       </div>
 
-      {/* 3. Core Workspace Rows: Thought Diary & USHA Recommendation */}
+      {/* 3. Core Workspace Rows */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left 2 Cols: Mindful Prompt + Recent Entries */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-8">
           {/* Mindful Prompt of the Day */}
-          <Card padding="lg" className="bg-gradient-to-tr from-bone-white via-surface to-sage-light/20 border border-charcoal-soft/10">
-            <div className="flex items-center justify-between mb-3">
+          <Card padding="lg" className="bg-gradient-to-tr from-bone-white via-surface to-sage-light/20 border border-charcoal-soft/10 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
               <Badge variant="blue">Daily CBT Thought Reframer</Badge>
               <span className="text-xs text-on-surface-variant flex items-center">
                 <Calendar className="w-3.5 h-3.5 mr-1" />
                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
               </span>
             </div>
-            <h3 className="text-lg font-serif font-bold text-slate-deep">
+            <h3 className="text-lg sm:text-xl font-serif font-bold text-slate-deep">
               "What is one assumption you made today that you have not tested against real facts?"
             </h3>
-            <p className="text-xs text-on-surface-variant mt-1.5 leading-relaxed">
-              In CBT, we often mistake emotional predictions for objective certainty. Take 2 minutes to write it in your Thought Diary and challenge automatic distortions.
+            <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+              In CBT, we often mistake emotional predictions for objective certainty. Take 2 minutes to write it in your Thought Diary and challenge automatic cognitive distortions.
             </p>
-            <div className="mt-4 flex gap-3">
+            <div className="pt-2 flex flex-wrap gap-3">
               <Link to="/journal">
-                <Button size="sm" variant="primary" rightIcon={<BookOpen className="w-3.5 h-3.5" />}>
+                <Button size="md" variant="primary" rightIcon={<BookOpen className="w-3.5 h-3.5" />}>
                   Open Thought Diary
                 </Button>
               </Link>
               <Link to="/chat">
-                <Button size="sm" variant="ghost">
-                  Discuss with USHA
+                <Button size="md" variant="ghost">
+                  Discuss with {aiName}
                 </Button>
               </Link>
             </div>
           </Card>
 
           {/* Recent Mood Check-in History */}
-          <Card padding="md" className="space-y-4">
-            <div className="flex items-center justify-between border-b border-charcoal-soft/10 pb-3">
-              <h3 className="text-base font-serif font-bold text-slate-deep">
+          <Card padding="lg" className="space-y-6 bg-bone-white border border-charcoal-soft/10 shadow-sm">
+            <div className="flex items-center justify-between border-b border-charcoal-soft/10 pb-4">
+              <h3 className="text-lg font-serif font-bold text-slate-deep">
                 Recent Mood Reflections
               </h3>
               <Link to="/mood" className="text-xs font-semibold text-clinical-blue hover:underline flex items-center">
@@ -192,21 +195,21 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {entries.length === 0 ? (
-              <div className="text-center py-8 text-on-surface-variant text-xs space-y-2">
-                <p>No mood logs recorded yet.</p>
+              <div className="text-center py-10 text-on-surface-variant text-xs space-y-3">
+                <p>No mood logs recorded yet. Start tracking your patterns today.</p>
                 <Button variant="sage" size="sm" onClick={openQuickLog}>
                   Log Your First Mood
                 </Button>
               </div>
             ) : (
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {entries.slice(0, 4).map((entry) => (
                   <div
                     key={entry.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-surface/70 border border-charcoal-soft/5 hover:bg-surface-container/60 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-xl bg-surface/70 border border-charcoal-soft/10 hover:bg-surface-container/60 transition-colors"
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 rounded-full bg-bone-white border border-charcoal-soft/15 flex items-center justify-center font-serif font-bold text-xs text-slate-deep">
+                    <div className="flex items-center space-x-3.5">
+                      <div className="w-9 h-9 rounded-full bg-bone-white border border-charcoal-soft/15 flex items-center justify-center font-serif font-bold text-xs text-slate-deep shadow-xs">
                         {entry.score}
                       </div>
                       <div>
@@ -220,9 +223,9 @@ export const DashboardPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1.5">
                       {entry.factors.slice(0, 2).map((f, i) => (
-                        <span key={i} className="text-[10px] bg-surface-container px-2 py-0.5 rounded text-on-surface-variant">
+                        <span key={i} className="text-[10px] bg-surface-container px-2.5 py-1 rounded-lg text-on-surface-variant font-medium">
                           {f}
                         </span>
                       ))}
@@ -234,47 +237,52 @@ export const DashboardPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right Col: USHA AI Quick Companion & Somatic Grounding */}
-        <div className="space-y-6">
-          {/* USHA Assistant Box */}
-          <Card padding="md" className="bg-slate-deep text-bone-white shadow-md space-y-4">
+        {/* Right Col: AI Quick Companion & Somatic Grounding */}
+        <div className="space-y-8">
+          {/* AI Assistant Box */}
+          <Card padding="lg" className="bg-slate-deep text-bone-white shadow-md space-y-5 rounded-2xl">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-full bg-sage-accent/20 border border-sage-accent/40 flex items-center justify-center text-sage-muted">
-                  <Sparkles className="w-4 h-4" />
+              <div className="flex items-center space-x-3">
+                <div className="w-9 h-9 rounded-xl bg-sage-accent/20 border border-sage-accent/40 flex items-center justify-center text-sage-muted">
+                  <Sparkles className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-serif font-bold tracking-wide">USHA AI Studio</h4>
-                  <p className="text-[10px] text-sage-muted">Voice & Text Companion</p>
+                  <h4 className="text-sm font-serif font-bold tracking-wide">{aiName} AI Studio</h4>
+                  <p className="text-[10px] text-sage-muted">Mindful CBT Companion</p>
                 </div>
               </div>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             </div>
 
             <p className="text-xs text-bone-white/85 leading-relaxed">
-              "How are you treating yourself today? If your mind feels crowded, we can take a slow breath or sort through what's demanding your attention."
+              "How are you treating yourself today? If your thoughts feel heavy, we can explore evidence-based reframing together."
             </p>
 
-            <Link to="/chat" className="block">
-              <Button variant="sage" size="sm" className="w-full justify-center">
-                Start Conversation
-              </Button>
-            </Link>
+            <div className="space-y-2 pt-1">
+              <Link to="/chat" className="block">
+                <Button variant="sage" size="md" className="w-full justify-center">
+                  Start Conversation
+                </Button>
+              </Link>
+              <Link to="/settings#customization" className="block text-center text-[11px] text-sage-muted hover:underline pt-1">
+                Customize AI Name & Voice Tone
+              </Link>
+            </div>
           </Card>
 
-          {/* Quick Grounding & Crisis Support Box */}
-          <Card padding="md" className="space-y-3 bg-surface-container/50 border border-charcoal-soft/10">
+          {/* Quick Grounding Box */}
+          <Card padding="lg" className="space-y-4 bg-surface-container/50 border border-charcoal-soft/10 rounded-2xl">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-deep">
                 Immediate Grounding
               </h4>
-              <Badge variant="blue">4-7-8</Badge>
+              <Badge variant="blue">4-7-8 Pacer</Badge>
             </div>
             <p className="text-xs text-on-surface-variant leading-relaxed">
-              Inhale for 4s, hold gently for 7s, and release smoothly for 8s to calm the nervous system.
+              Inhale for 4s, hold gently for 7s, and release smoothly for 8s to soothe your autonomic nervous system.
             </p>
-            <Link to="/resources" className="block">
-              <Button variant="secondary" size="sm" className="w-full justify-center" leftIcon={<Wind className="w-3.5 h-3.5 text-sage-accent" />}>
+            <Link to="/resources" className="block pt-1">
+              <Button variant="secondary" size="md" className="w-full justify-center" leftIcon={<Wind className="w-4 h-4 text-sage-accent" />}>
                 Launch Breathing Guide
               </Button>
             </Link>

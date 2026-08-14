@@ -20,8 +20,12 @@ import {
   MessageSquare,
   Wind,
   HeartHandshake,
-  Bot
+  Bot,
+  Settings,
+  Menu,
+  X
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const SUGGESTIONS = [
   'I am trapped in overthinking and catastrophizing',
@@ -33,6 +37,7 @@ const SUGGESTIONS = [
 
 export const UshaChatPage: React.FC = () => {
   const { user } = useAuth();
+  const [aiName, setAiName] = useState<string>(speechService.getActiveAiName());
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -41,9 +46,14 @@ export const UshaChatPage: React.FC = () => {
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState<boolean>(true);
   const [showCrisisModal, setShowCrisisModal] = useState<boolean>(false);
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false); // clean default for mobile
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync active AI name whenever user profile changes or local storage is updated
+  useEffect(() => {
+    setAiName(speechService.getActiveAiName());
+  }, [user]);
 
   const fetchSessions = async () => {
     try {
@@ -81,7 +91,7 @@ export const UshaChatPage: React.FC = () => {
     }
   }, [currentSessionId]);
 
-  // Smoothly scroll only within the chat messages container to keep outer page centered
+  // Smoothly scroll only within the chat messages container
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTo({
@@ -105,11 +115,12 @@ export const UshaChatPage: React.FC = () => {
             id: 'welcome',
             sessionId: newSession.id,
             role: 'usha',
-            content: `Hello ${user ? user.name.split(' ')[0] : 'friend'}. I am USHA, your CBT wellness companion.\n\nTake a slow breath. What is on your mind today?`,
+            content: `Hello ${user ? user.name.split(' ')[0] : 'friend'}! I am ${aiName}, your dedicated CBT wellness companion.\n\nTake a slow, gentle breath. What is on your mind today?`,
             isCrisisTriggered: false,
             timestamp: new Date().toISOString(),
           }
         ]);
+        setSidebarOpen(false);
       }
     } catch (err) {
       console.error('Error creating new session:', err);
@@ -156,6 +167,7 @@ export const UshaChatPage: React.FC = () => {
       const res = await api.post('/chat/message', {
         sessionId: currentSessionId || undefined,
         message: text.trim(),
+        aiName,
       });
 
       const data = res.data?.data;
@@ -206,253 +218,282 @@ export const UshaChatPage: React.FC = () => {
   };
 
   return (
-    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-5rem)] flex flex-col">
-      {/* Studio Header */}
-      <div className="flex items-center justify-between border-b border-charcoal-soft/10 pb-4 mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-deep to-clinical-blue text-sage-muted flex items-center justify-center shadow-md">
-            <Sparkles className="w-5 h-5" />
+    <PageTransition className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+      {/* Top Bar Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-bone-white border border-charcoal-soft/10 p-5 sm:p-7 rounded-2xl shadow-sm">
+        <div className="flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-2xl bg-slate-deep text-sage-muted flex items-center justify-center shadow-md">
+            <Bot className="w-6 h-6" />
           </div>
-          <div>
+          <div className="space-y-0.5">
             <div className="flex items-center space-x-2">
-              <h1 className="text-xl font-serif font-bold text-slate-deep">
-                USHA AI Companion Studio
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-slate-deep">
+                {aiName} Wellness Studio
               </h1>
-              <Badge variant="sage">Voice & Text</Badge>
+              <Badge variant="sage" size="sm">CBT Companion</Badge>
             </div>
             <p className="text-xs text-on-surface-variant">
-              Empathetic, CBT-grounded conversations with automated crisis safety guardrails.
+              Continuous reflection with mindful CBT reframing, active listening, and evidence-based guidance.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-3">
+          {/* Mobile Sessions Toggle */}
           <button
-            onClick={() => {
-              setIsVoiceEnabled(!isVoiceEnabled);
-              if (isVoiceEnabled) speechService.stopSpeaking();
-            }}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs font-semibold border transition-colors ${
-              isVoiceEnabled
-                ? 'bg-sage-light text-slate-deep border-sage-accent/40'
-                : 'bg-surface text-on-surface-variant border-charcoal-soft/15'
-            }`}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden p-2.5 bg-surface border border-charcoal-soft/15 rounded-xl text-slate-deep hover:bg-surface-container"
+            title="Toggle Sessions Sidebar"
           >
-            {isVoiceEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-error" />}
-            <span className="hidden sm:inline">{isVoiceEnabled ? 'Voice Output ON' : 'Muted'}</span>
+            {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleCreateSession}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
+          {/* Voice Output Toggle */}
+          <button
+            onClick={() => {
+              if (isVoiceEnabled) speechService.stopSpeaking();
+              setIsVoiceEnabled(!isVoiceEnabled);
+            }}
+            className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center space-x-2 transition-all ${
+              isVoiceEnabled
+                ? 'bg-slate-deep text-bone-white border-slate-deep shadow-sm'
+                : 'bg-surface border-charcoal-soft/15 text-on-surface-variant hover:text-slate-deep'
+            }`}
+            title={isVoiceEnabled ? 'Voice output enabled' : 'Voice output muted'}
           >
-            New Session
-          </Button>
+            {isVoiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            <span className="hidden sm:inline">{isVoiceEnabled ? 'Voice On' : 'Muted'}</span>
+          </button>
+
+          {/* Settings Customization Link */}
+          <Link to="/settings#customization">
+            <button
+              className="p-2.5 rounded-xl border border-charcoal-soft/15 bg-surface text-slate-deep hover:bg-surface-container transition-all flex items-center space-x-2 text-xs font-semibold"
+              title="Customize Name & Voice"
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Customize</span>
+            </button>
+          </Link>
         </div>
       </div>
 
-      {/* Main Workspace Layout (Sidebar + Chat Area) */}
-      <div className="flex-1 flex gap-4 min-h-0">
-        {/* Sessions Sidebar */}
-        <div className={`w-64 bg-bone-white border border-charcoal-soft/10 rounded-xl p-3 flex-col hidden md:flex ${sidebarOpen ? '' : 'w-12'}`}>
-          <div className="flex items-center justify-between pb-2 border-b border-charcoal-soft/10 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-deep">
-              Past Reflections
-            </span>
+      {/* Main Studio Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 h-[72vh] min-h-[550px]">
+        {/* 1. Sessions Sidebar */}
+        <div
+          className={`${
+            sidebarOpen ? 'block' : 'hidden'
+          } md:block md:col-span-1 bg-bone-white border border-charcoal-soft/10 rounded-2xl p-5 space-y-4 shadow-sm flex flex-col justify-between overflow-hidden`}
+        >
+          <div className="space-y-3 overflow-hidden flex flex-col flex-1">
+            <div className="flex items-center justify-between border-b border-charcoal-soft/10 pb-3">
+              <span className="text-xs font-serif font-bold text-slate-deep uppercase tracking-wider">
+                Reflections
+              </span>
+              <Button
+                variant="sage"
+                size="sm"
+                onClick={handleCreateSession}
+                leftIcon={<Plus className="w-3.5 h-3.5" />}
+              >
+                New
+              </Button>
+            </div>
+
+            <div className="space-y-2 overflow-y-auto pr-1 flex-1">
+              {sessions.length === 0 ? (
+                <div className="text-center py-8 text-xs text-on-surface-variant italic">
+                  No previous sessions.<br />Start a fresh conversation!
+                </div>
+              ) : (
+                sessions.map((s) => {
+                  const isSelected = currentSessionId === s.id;
+                  return (
+                    <div
+                      key={s.id}
+                      onClick={() => {
+                        setCurrentSessionId(s.id);
+                        setSidebarOpen(false);
+                      }}
+                      className={`p-3 rounded-xl cursor-pointer text-xs transition-all flex items-center justify-between group ${
+                        isSelected
+                          ? 'bg-slate-deep text-bone-white font-semibold shadow-sm'
+                          : 'bg-surface/70 hover:bg-surface-container text-slate-deep border border-charcoal-soft/10'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 truncate mr-2">
+                        <MessageSquare className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{s.title}</span>
+                      </div>
+                      <button
+                        onClick={(e) => handleDeleteSession(s.id, e)}
+                        className={`opacity-0 group-hover:opacity-100 p-1 hover:text-rose-400 transition-opacity ${
+                          isSelected ? 'text-bone-white/70' : 'text-on-surface-variant'
+                        }`}
+                        title="Delete reflection"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto space-y-1.5">
-            {sessions.map((s) => {
-              const isSelected = currentSessionId === s.id;
-              return (
-                <div
-                  key={s.id}
-                  onClick={() => setCurrentSessionId(s.id)}
-                  className={`group flex items-center justify-between p-2.5 rounded-lg text-xs cursor-pointer transition-all border ${
-                    isSelected
-                      ? 'bg-surface-container text-slate-deep font-bold border-slate-deep/30'
-                      : 'bg-surface/50 text-on-surface hover:bg-surface-container/60 border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center space-x-2 truncate">
-                    <MessageSquare className="w-3.5 h-3.5 text-on-surface-variant flex-shrink-0" />
-                    <span className="truncate">{s.title}</span>
-                  </div>
-                  <button
-                    onClick={(e) => handleDeleteSession(s.id, e)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:text-error rounded transition-opacity"
-                    title="Delete session"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              );
-            })}
+          {/* Quick Grounding Hint Card */}
+          <div className="pt-3 border-t border-charcoal-soft/10 text-[11px] text-on-surface-variant flex items-center space-x-2 bg-surface-container/40 p-3 rounded-xl">
+            <Wind className="w-4 h-4 text-clinical-blue flex-shrink-0" />
+            <span>Need a quick pause? Ask for the 4-7-8 breathing pacer.</span>
           </div>
         </div>
 
-        {/* Chat Studio Area */}
-        <div className="flex-1 bg-bone-white border border-charcoal-soft/10 rounded-xl flex flex-col overflow-hidden shadow-sm">
-          {/* Audio Wave Visualizer when Voice is Active */}
-          {isListening && (
-            <div className="bg-sage-light border-b border-sage-accent/30 p-3 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-1 h-6">
-                  <span className="w-1 bg-slate-deep rounded-full wave-bar" />
-                  <span className="w-1 bg-clinical-blue rounded-full wave-bar" />
-                  <span className="w-1 bg-sage-accent rounded-full wave-bar" />
-                  <span className="w-1 bg-slate-deep rounded-full wave-bar" />
-                  <span className="w-1 bg-clinical-blue rounded-full wave-bar" />
-                </div>
-                <span className="text-xs font-semibold text-slate-deep">
-                  USHA is listening... speak your thoughts naturally.
-                </span>
-              </div>
-              <Button size="sm" variant="sage" onClick={handleToggleVoiceInput}>
-                Finish Speaking
-              </Button>
-            </div>
-          )}
-
-          {/* Messages Feed */}
-          <div ref={chatContainerRef} className="flex-1 p-4 sm:p-6 overflow-y-auto space-y-4 bg-surface/40">
+        {/* 2. Main Chat Conversation Area */}
+        <div className="md:col-span-3 bg-bone-white border border-charcoal-soft/10 rounded-2xl flex flex-col shadow-sm overflow-hidden">
+          {/* Messages Scroll Area */}
+          <div
+            ref={chatContainerRef}
+            className="flex-1 p-6 sm:p-8 space-y-6 overflow-y-auto bg-surface/30"
+          >
             {messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center max-w-md mx-auto space-y-4 py-8">
-                <div className="w-14 h-14 rounded-2xl bg-slate-deep text-sage-muted flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-7 h-7" />
+              <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto space-y-6 py-12">
+                <div className="w-16 h-16 rounded-3xl bg-sage-light text-slate-deep flex items-center justify-center shadow-inner">
+                  <Sparkles className="w-8 h-8 text-slate-deep" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-serif font-bold text-slate-deep">Welcome to USHA Studio</h3>
-                  <p className="text-xs text-on-surface-variant leading-relaxed">
-                    A safe, compassionate space to unpack anxious thoughts, practice CBT reframing, or engage in calming breathing exercises.
+                <div className="space-y-2">
+                  <h3 className="text-xl sm:text-2xl font-serif font-bold text-slate-deep">
+                    A Quiet Place to Check In
+                  </h3>
+                  <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
+                    Say whatever is on your mind. {aiName} is listening with clinical empathy, memory of your recent conversation, and evidence-based CBT techniques.
                   </p>
                 </div>
 
-                {/* Prompt Suggestion Pills */}
                 <div className="w-full space-y-2 pt-2">
-                  <span className="text-[11px] font-semibold text-slate-deep block">Try asking:</span>
-                  {SUGGESTIONS.map((suggestion, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleSendMessage(suggestion)}
-                      className="w-full text-left p-2.5 bg-bone-white border border-charcoal-soft/15 rounded-lg text-xs hover:border-clinical-blue hover:bg-surface-container transition-all"
-                    >
-                      "{suggestion}"
-                    </button>
-                  ))}
+                  <span className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider block">
+                    Suggested prompts to begin:
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    {SUGGESTIONS.map((sug, i) => (
+                      <button
+                        key={i}
+                        onClick={() => handleSendMessage(sug)}
+                        className="text-left px-4 py-2.5 bg-surface border border-charcoal-soft/15 rounded-xl text-xs text-slate-deep hover:bg-surface-container hover:border-clinical-blue transition-all"
+                      >
+                        "{sug}"
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ) : (
-              messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
-                >
+              messages.map((msg, idx) => {
+                const isUser = msg.role === 'user';
+                return (
                   <div
-                    className={`max-w-[85%] sm:max-w-[75%] p-4 rounded-2xl whitespace-pre-wrap text-sm leading-relaxed ${
-                      m.role === 'user'
-                        ? 'bg-slate-deep text-bone-white rounded-br-none shadow-sm'
-                        : m.isCrisisTriggered
-                        ? 'bg-error-container border-2 border-error/40 text-on-error-container rounded-bl-none shadow-md'
-                        : 'bg-bone-white border border-charcoal-soft/15 text-on-surface rounded-bl-none shadow-sm'
-                    }`}
+                    key={msg.id || idx}
+                    className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} space-y-1.5`}
                   >
-                    {m.content}
+                    <div className="flex items-center space-x-2 text-[10px] text-on-surface-variant px-1">
+                      <span className="font-bold">{isUser ? 'You' : aiName}</span>
+                      <span>•</span>
+                      <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
 
-                    {m.isCrisisTriggered && (
-                      <div className="mt-3 pt-3 border-t border-error/30 flex items-center justify-between text-xs">
-                        <span className="font-bold flex items-center">
-                          <ShieldAlert className="w-4 h-4 mr-1 text-error" />
-                          Emergency Lifeline Available (988)
-                        </span>
-                        <button
-                          onClick={() => setShowCrisisModal(true)}
-                          className="px-2.5 py-1 bg-error text-white font-bold rounded hover:bg-red-700 transition-colors"
-                        >
-                          View 24/7 Hotlines
-                        </button>
+                    <div
+                      className={`max-w-xl sm:max-w-2xl px-5 py-4 rounded-2xl text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
+                        isUser
+                          ? 'bg-slate-deep text-bone-white rounded-tr-sm shadow-md'
+                          : msg.isCrisisTriggered
+                          ? 'bg-rose-50 border-2 border-rose-300 text-rose-900 rounded-tl-sm shadow-md'
+                          : 'bg-surface border border-charcoal-soft/15 text-slate-deep rounded-tl-sm shadow-sm'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
+
+                    {/* Suggested Action Chips */}
+                    {!isUser && msg.metadata?.suggestedActions && msg.metadata.suggestedActions.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-1.5 pl-1">
+                        {msg.metadata.suggestedActions.map((action, ai) => (
+                          <button
+                            key={ai}
+                            onClick={() => handleSendMessage(action)}
+                            className="px-3 py-1 bg-sage-light/80 hover:bg-sage-light text-slate-deep border border-sage-accent/30 rounded-lg text-[11px] font-semibold transition-all shadow-xs"
+                          >
+                            {action}
+                          </button>
+                        ))}
                       </div>
                     )}
                   </div>
-
-                  {/* Suggestion action pills from USHA */}
-                  {m.metadata?.suggestedActions && m.metadata.suggestedActions.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {m.metadata.suggestedActions.map((action, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleSendMessage(action)}
-                          className="px-3 py-1 bg-sage-light text-slate-deep border border-sage-accent/30 rounded-full text-xs font-semibold hover:bg-sage-accent/30 transition-colors"
-                        >
-                          {action}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  <span className="text-[10px] text-on-surface-variant mt-1 px-1">
-                    {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              ))
+                );
+              })
             )}
 
             {isTyping && (
-              <div className="flex items-center space-x-1.5 p-3 bg-bone-white border border-charcoal-soft/15 rounded-2xl rounded-bl-none w-20 shadow-sm">
-                <span className="w-2 h-2 bg-clinical-blue rounded-full animate-bounce" />
-                <span className="w-2 h-2 bg-clinical-blue rounded-full animate-bounce [animation-delay:0.2s]" />
-                <span className="w-2 h-2 bg-clinical-blue rounded-full animate-bounce [animation-delay:0.4s]" />
+              <div className="flex items-center space-x-2.5 text-xs text-on-surface-variant pl-2 py-2">
+                <div className="flex space-x-1.5">
+                  <div className="w-2 h-2 rounded-full bg-slate-deep animate-bounce" />
+                  <div className="w-2 h-2 rounded-full bg-slate-deep animate-bounce [animation-delay:0.2s]" />
+                  <div className="w-2 h-2 rounded-full bg-slate-deep animate-bounce [animation-delay:0.4s]" />
+                </div>
+                <span className="italic font-serif">{aiName} is thinking...</span>
               </div>
             )}
           </div>
 
-          {/* Input Bar */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="p-3 sm:p-4 bg-bone-white border-t border-charcoal-soft/10 flex items-center space-x-2"
-          >
-            <button
-              type="button"
-              onClick={handleToggleVoiceInput}
-              className={`p-2.5 rounded-full transition-all ${
-                isListening
-                  ? 'bg-red-500 text-white animate-pulse shadow-md'
-                  : 'text-clinical-blue hover:bg-surface-container'
-              }`}
-              title="Voice Input (STT)"
+          {/* Composer Input Bar */}
+          <div className="p-4 sm:p-5 border-t border-charcoal-soft/10 bg-bone-white space-y-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="flex items-center space-x-3"
             >
-              {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-            </button>
+              <button
+                type="button"
+                onClick={handleToggleVoiceInput}
+                className={`p-3 rounded-xl border transition-all ${
+                  isListening
+                    ? 'bg-rose-500 text-white border-rose-600 animate-pulse shadow-md'
+                    : 'bg-surface border-charcoal-soft/20 text-slate-deep hover:bg-surface-container'
+                }`}
+                title={isListening ? 'Listening... click to stop' : 'Voice input (Dictate)'}
+              >
+                {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
 
-            <input
-              type="text"
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              placeholder={isListening ? 'Listening to your voice...' : 'Type a reflection, automatic thought, or question...'}
-              className="flex-1 px-4 py-2.5 text-sm bg-surface border border-charcoal-soft/15 rounded-xl focus:outline-none focus:ring-2 focus:ring-clinical-blue focus:bg-bone-white"
-            />
+              <input
+                type="text"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                placeholder={`Share what you are feeling with ${aiName}...`}
+                className="flex-1 px-4 py-3 text-xs sm:text-sm bg-surface border border-charcoal-soft/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-clinical-blue text-slate-deep shadow-inner"
+              />
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              disabled={!inputText.trim() || isTyping}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={!inputText.trim() || isTyping}
+                leftIcon={<Send className="w-4 h-4" />}
+              >
+                Send
+              </Button>
+            </form>
+
+            <div className="flex items-center justify-between text-[10px] text-on-surface-variant px-1">
+              <span>{aiName} uses evidence-based CBT methods. Not a replacement for emergency clinical care.</span>
+              <span className="hidden sm:inline">24/7 Helpline: 9152987821</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <CrisisModal
-        isOpen={showCrisisModal}
-        onClose={() => setShowCrisisModal(false)}
-      />
+      <CrisisModal isOpen={showCrisisModal} onClose={() => setShowCrisisModal(false)} />
     </PageTransition>
   );
 };

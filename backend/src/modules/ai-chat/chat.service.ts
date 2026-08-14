@@ -72,7 +72,7 @@ export class ChatService {
     }));
   }
 
-  async sendMessage(userId: string, data: { sessionId?: string; message: string }) {
+  async sendMessage(userId: string, data: { sessionId?: string; message: string; aiName?: string }) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { id: true, name: true }
@@ -167,6 +167,7 @@ export class ChatService {
       message: data.message.trim(),
       conversationHistory,
       userName: user.name.split(' ')[0], // first name for warmth
+      aiName: data.aiName || 'USHA',
     });
 
     const metadata = {

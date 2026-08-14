@@ -6,7 +6,7 @@ import { logAudit } from '../../middleware/security';
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
   avatar: z.string().optional(),
-  theme: z.enum(['light', 'dark', 'system']).optional(),
+  theme: z.string().optional(),
 });
 
 const onboardingSchema = z.object({

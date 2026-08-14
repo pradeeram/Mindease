@@ -4,7 +4,7 @@ function getResolvedDatabaseUrl(): string {
   const directFallback = 'postgresql://postgres:MindEaseDb2026@db.zuxnxwihlvgpquwrqlew.supabase.co:5432/postgres';
   const rawUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
-  if (!rawUrl || rawUrl.trim() === '') {
+  if (!rawUrl || rawUrl.trim() === '' || rawUrl.includes('file:')) {
     return directFallback;
   }
 
@@ -25,14 +25,22 @@ function getResolvedDatabaseUrl(): string {
 
 const activeDbUrl = getResolvedDatabaseUrl();
 
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: activeDbUrl,
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClient | undefined;
+};
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    datasources: {
+      db: {
+        url: activeDbUrl,
+      },
     },
-  },
-  log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-});
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+  });
+
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 export async function connectDB() {
   try {

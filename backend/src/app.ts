@@ -72,6 +72,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Diagnostic probe for database connectivity
+app.get('/api/db-diagnostics', async (req, res) => {
+  try {
+    const { prisma } = await import('./db/prisma');
+    const count = await prisma.user.count();
+    res.status(200).json({
+      success: true,
+      database: 'connected',
+      userCount: count,
+      envDatabaseUrlSet: Boolean(process.env.DATABASE_URL),
+      envDirectUrlSet: Boolean(process.env.DIRECT_URL),
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      success: false,
+      errorName: err.name,
+      errorCode: err.code,
+      errorMessage: err.message,
+      envDatabaseUrlSet: Boolean(process.env.DATABASE_URL),
+      envDirectUrlSet: Boolean(process.env.DIRECT_URL),
+    });
+  }
+});
+
 // General Rate Limiter
 app.use('/api/', generalLimiter);
 

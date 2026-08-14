@@ -1,17 +1,21 @@
 import { PrismaClient } from '@prisma/client';
 
 function getResolvedDatabaseUrl(): string {
-  // IPv4 compatible Supabase connection for AWS Lambda / Vercel Serverless
-  const ipv4SupabaseUrl = 'postgresql://postgres.zuxnxwihlvgpquwrqlew:MindEaseDb2026@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres';
-  let rawUrl = (process.env.DIRECT_URL || process.env.DATABASE_URL || '').replace(/^["']|["']$/g, '').trim();
+  const verifiedSupabasePooler = 'postgresql://postgres.zuxnxwihlvgpquwrqlew:MindEaseDb2026@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres';
+  let rawUrl = (process.env.DATABASE_URL || process.env.DIRECT_URL || '').replace(/^["']|["']$/g, '').trim();
 
-  if (!rawUrl || rawUrl.includes('file:') || rawUrl.includes('localhost') || rawUrl.includes('db.zuxnxwihlvgpquwrqlew.supabase.co')) {
-    return ipv4SupabaseUrl;
+  if (!rawUrl || rawUrl.includes('file:') || rawUrl.includes('localhost')) {
+    return verifiedSupabasePooler;
   }
 
-  // If pointing to transaction pooler :6543, ensure pgbouncer parameter
-  if (rawUrl.includes(':6543') && !rawUrl.includes('pgbouncer=true')) {
-    rawUrl += (rawUrl.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1';
+  // 1. If pointing to Supabase pooler with generic 'postgres:' username, inject the tenant ref
+  if (rawUrl.includes('pooler.supabase.com') && rawUrl.includes('://postgres:')) {
+    rawUrl = rawUrl.replace('://postgres:', '://postgres.zuxnxwihlvgpquwrqlew:');
+  }
+
+  // 2. If pointing to IPv6-only host, convert to IPv4 pooler host for Vercel Lambda compatibility
+  if (rawUrl.includes('db.zuxnxwihlvgpquwrqlew.supabase.co')) {
+    rawUrl = verifiedSupabasePooler;
   }
 
   return rawUrl;

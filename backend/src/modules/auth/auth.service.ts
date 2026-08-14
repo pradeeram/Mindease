@@ -216,7 +216,7 @@ export class AuthService {
     // 2. If user does NOT exist, execute constant-time dummy comparison to prevent timing attacks
     if (!user) {
       await bcrypt.compare(data.password, DUMMY_BCRYPT_HASH);
-      const error: any = new Error('Invalid email address or password.');
+      const error: any = new Error('Invalid Login Credentials');
       error.statusCode = 401;
       error.code = 'INVALID_CREDENTIALS';
       throw error;
@@ -241,7 +241,7 @@ export class AuthService {
       const error: any = new Error(
         isNowLocked
           ? 'Account locked for 15 minutes due to 5 consecutive failed login attempts.'
-          : 'Invalid email address or password.'
+          : 'Invalid Login Credentials'
       );
       error.statusCode = isNowLocked ? 429 : 401;
       error.code = isNowLocked ? 'ACCOUNT_LOCKED' : 'INVALID_CREDENTIALS';

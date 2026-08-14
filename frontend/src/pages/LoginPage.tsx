@@ -28,7 +28,7 @@ export const LoginPage: React.FC = () => {
         navigate('/dashboard');
       }
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Invalid email or password.');
+      setError(err.response?.data?.error?.message || 'Invalid Login Credentials');
     } finally {
       setIsLoading(false);
     }

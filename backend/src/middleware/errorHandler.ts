@@ -46,13 +46,12 @@ export function errorHandler(
   const statusCode = err.statusCode || 500;
   let message = err.message || 'Internal server error occurred. Please try again later.';
 
-  // Sanitize internal server errors to avoid leaking database details or stack traces
+  // Only sanitize 500 internal server errors or unexpected unhandled database driver crashes
   if (
-    statusCode === 500 ||
+    statusCode >= 500 ||
     message.toLowerCase().includes('prisma') ||
     message.toLowerCase().includes('postgres') ||
-    message.toLowerCase().includes('authentication failed') ||
-    message.toLowerCase().includes('password')
+    message.toLowerCase().includes('database error')
   ) {
     message = 'An unexpected server error occurred. Please try again later.';
   }

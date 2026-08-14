@@ -3,61 +3,136 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --bg-primary: #f8f9fa;
-    --text-primary: #191c1d;
-    --font-headline: "Source Serif 4", Georgia, serif;
-    --font-body: "Hanken Grotesk", system-ui, sans-serif;
+  /* 1. Default / Warm Bone Theme (Light) */
+  :root,
+  [data-theme="light"] {
+    --color-bg-primary: #F8F9FA;
+    --color-text-primary: #191C1D;
+    --color-slate-deep: #2C3E50;
+    --color-charcoal-soft: #343A40;
+    --color-sage-accent: #8AA399;
+    --color-sage-muted: #DDE5B6;
+    --color-sage-light: #EEF3E2;
+    --color-clinical-blue: #4A6274;
+    --color-clinical-blue-light: #E8EFF4;
+    --color-bone-white: #FDFDFD;
+    --color-surface: #F8F9FA;
+    --color-surface-dim: #D9DADB;
+    --color-surface-container: #EDEEEF;
+    --color-surface-container-high: #E7E8E9;
+    --color-on-surface: #191C1D;
+    --color-on-surface-variant: #43474C;
+    --color-card-border: rgba(52, 58, 64, 0.1);
+  }
+
+  /* 2. Warm Sand Theme */
+  [data-theme="warm_sand"] {
+    --color-bg-primary: #F5EFE6;
+    --color-text-primary: #2A241E;
+    --color-slate-deep: #3D312A;
+    --color-charcoal-soft: #4E4239;
+    --color-sage-accent: #A38C75;
+    --color-sage-muted: #E6D7C3;
+    --color-sage-light: #EFE4D6;
+    --color-clinical-blue: #645547;
+    --color-clinical-blue-light: #E8DFD5;
+    --color-bone-white: #FAF6F0;
+    --color-surface: #F5EFE6;
+    --color-surface-dim: #D8CFC4;
+    --color-surface-container: #EBE1D5;
+    --color-surface-container-high: #DFD4C5;
+    --color-on-surface: #2A241E;
+    --color-on-surface-variant: #5C5045;
+    --color-card-border: rgba(78, 66, 57, 0.14);
+  }
+
+  /* 3. Deep Slate Theme (Dark Mode) */
+  [data-theme="dark"] {
+    --color-bg-primary: #0F172A;
+    --color-text-primary: #F1F5F9;
+    --color-slate-deep: #38BDF8;
+    --color-charcoal-soft: #94A3B8;
+    --color-sage-accent: #34D399;
+    --color-sage-muted: #1E293B;
+    --color-sage-light: #1E293B;
+    --color-clinical-blue: #60A5FA;
+    --color-clinical-blue-light: #1E293B;
+    --color-bone-white: #1E293B;
+    --color-surface: #0F172A;
+    --color-surface-dim: #020617;
+    --color-surface-container: #1E293B;
+    --color-surface-container-high: #334155;
+    --color-on-surface: #F8FAFC;
+    --color-on-surface-variant: #94A3B8;
+    --color-card-border: rgba(255, 255, 255, 0.12);
+  }
+
+  /* 4. Calm Sage Theme */
+  [data-theme="sage_calm"] {
+    --color-bg-primary: #EBF2EC;
+    --color-text-primary: #15291E;
+    --color-slate-deep: #1F3F30;
+    --color-charcoal-soft: #2E4C3C;
+    --color-sage-accent: #528065;
+    --color-sage-muted: #CFE2D4;
+    --color-sage-light: #DFEDE3;
+    --color-clinical-blue: #3E6350;
+    --color-clinical-blue-light: #D4E5DA;
+    --color-bone-white: #F5FAF6;
+    --color-surface: #EBF2EC;
+    --color-surface-dim: #CADCCF;
+    --color-surface-container: #DEEAE0;
+    --color-surface-container-high: #D0E0D3;
+    --color-on-surface: #15291E;
+    --color-on-surface-variant: #395444;
+    --color-card-border: rgba(31, 63, 48, 0.13);
   }
 
   body {
-    background-color: #f8f9fa;
-    color: #191c1d;
-    font-family: var(--font-body);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: "Hanken Grotesk", system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-headline);
+    font-family: "Source Serif 4", Georgia, serif;
   }
 }
 
-/* Custom Soothing Scrollbar */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f3f4;
+  background: var(--color-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c4c6cd;
+  background: var(--color-charcoal-soft);
+  opacity: 0.4;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #8aa399;
+  background: var(--color-sage-accent);
 }
 
 /* Glassmorphism & Soft Layers */
 .glass-card {
-  background: rgba(253, 253, 253, 0.85);
+  background: var(--color-bone-white);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(52, 58, 64, 0.08);
+  border: 1px solid var(--color-card-border);
 }
 
 .clinical-card {
-  background: #fdfdfd;
-  border: 1px solid rgba(52, 58, 64, 0.1);
+  background: var(--color-bone-white);
+  border: 1px solid var(--color-card-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-.active-field-focus {
-  background-color: #f6f9ee;
-  border-color: #4a6274;
 }
 
 /* Audio wave animation bars */

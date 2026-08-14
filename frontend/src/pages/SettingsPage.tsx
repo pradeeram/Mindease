@@ -33,22 +33,23 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { speechService, VOICE_PRESETS, VoicePresetKey } from '../services/speech';
+import { useTheme, ThemeType } from '../context/ThemeContext';
 
-const THEME_OPTIONS = [
+const THEME_OPTIONS: { id: ThemeType; name: string; desc: string; color: string; border: string }[] = [
   { id: 'light', name: 'Warm Bone (Light)', desc: 'Clean, soothing cream aesthetic designed for clear daily reflection', color: '#FDFBF7', border: '#E6E1DA' },
-  { id: 'warm_sand', name: 'Warm Sand', desc: 'Earth-toned calming palette inspired by gentle grounding therapy', color: '#F5F0EB', border: '#D8CFC4' },
-  { id: 'dark', name: 'Deep Slate (Dark)', desc: 'Low-light dark mode engineered to reduce eye strain in evening hours', color: '#1E293B', border: '#334155' },
-  { id: 'sage_calm', name: 'Calm Sage', desc: 'Organic herbal sage green palette for restorative mindfulness', color: '#EAF0EC', border: '#C5D6C9' },
+  { id: 'warm_sand', name: 'Warm Sand', desc: 'Earth-toned calming palette inspired by gentle grounding therapy', color: '#F5EFE6', border: '#D8CFC4' },
+  { id: 'dark', name: 'Deep Slate (Dark)', desc: 'Low-light dark mode engineered to reduce eye strain in evening hours', color: '#0F172A', border: '#334155' },
+  { id: 'sage_calm', name: 'Calm Sage', desc: 'Organic herbal sage green palette for restorative mindfulness', color: '#EBF2EC', border: '#C5D6C9' },
 ];
 
 const AI_NAME_PRESETS = ['USHA', 'Maya', 'Aria', 'Oliver', 'Echo', 'MindEase'];
 
 export const SettingsPage: React.FC = () => {
   const { user, updateUser, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   // Profile update
   const [name, setName] = useState<string>(user?.name || '');
-  const [theme, setTheme] = useState<string>(user?.theme || 'light');
   const [isUpdatingProfile, setIsUpdatingProfile] = useState<boolean>(false);
   const [profileSuccess, setProfileSuccess] = useState<boolean>(false);
 

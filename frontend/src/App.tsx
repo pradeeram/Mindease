@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MoodProvider } from './context/MoodContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Navbar } from './components/layout/Navbar';
 import { Footer } from './components/layout/Footer';
 import { MoodCheckInModal } from './components/mood/MoodCheckInModal';
@@ -61,7 +62,7 @@ const AppContent: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div className="flex flex-col min-h-screen bg-surface">
+    <div className="flex flex-col min-h-screen bg-surface transition-colors duration-300">
       <Navbar />
 
       <main className="flex-1">
@@ -109,13 +110,15 @@ const AppContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <MoodProvider>
-          <Router>
-            <AppContent />
-          </Router>
-        </MoodProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <MoodProvider>
+            <Router>
+              <AppContent />
+            </Router>
+          </MoodProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

@@ -10,7 +10,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'https://mindease-proj.vercel.app',
     trace: 'on-first-retry',
     viewport: { width: 1280, height: 720 },
   },

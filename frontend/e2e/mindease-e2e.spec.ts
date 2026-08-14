@@ -170,7 +170,7 @@ test.describe('MindEase E2E Test Suite', () => {
   });
 
   test('[8] API Anti-Caching & Security Headers Verification', async ({ request }) => {
-    const response = await request.get('http://localhost:5000/api/health');
+    const response = await request.get('/api/health');
     expect(response.status()).toBe(200);
 
     const headers = response.headers();
@@ -189,6 +189,47 @@ test.describe('MindEase E2E Test Suite', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  });
+
+  test('[10] Custom 404 Not Found Page & Somatic Grounding Breath Tool', async ({ page }) => {
+    // Navigate to non-existent route
+    await page.goto('/non-existent-subpage-404-test');
+
+    // Verify 404 badge and editorial heading
+    await expect(page.getByText(/404 • Path Not Found/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /This Path Appears Quiet/i })).toBeVisible();
+
+    // Verify navigation destination cards
+    await expect(page.getByText(/My Dashboard/i)).toBeVisible();
+    await expect(page.getByText(/USHA AI Studio/i)).toBeVisible();
+    await expect(page.getByText(/CBT Thought Diary/i)).toBeVisible();
+    await expect(page.getByText(/Crisis & Hotlines/i)).toBeVisible();
+
+    // Test interactive somatic breath pacer button
+    const breathBtn = page.getByRole('button', { name: /Start 1-Min Breath/i });
+    await expect(breathBtn).toBeVisible();
+    await breathBtn.click();
+    await expect(page.getByText(/Breathe in softly through the nose/i)).toBeVisible();
+  });
+
+  test('[11] Custom 401 Session Expired Protection Page', async ({ page }) => {
+    await page.goto('/session-expired');
+    await expect(page.getByText(/Session Expired • 401/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Session Locked for Privacy/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Sign In to Resume/i })).toBeVisible();
+  });
+
+  test('[12] Mobile (375px) vs Desktop (1280px) Error Screen Rendering', async ({ page }) => {
+    // Test 404 on mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    await page.goto('/random-path-mobile');
+    await expect(page.getByRole('heading', { name: /This Path Appears Quiet/i })).toBeVisible();
+    await expect(page.getByText(/Go back to previous page/i)).toBeVisible();
+
+    // Test Session Expired on desktop viewport
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/session-expired');
+    await expect(page.getByRole('heading', { name: /Session Locked for Privacy/i })).toBeVisible();
   });
 
 });

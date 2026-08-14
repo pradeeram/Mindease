@@ -7,6 +7,8 @@ import { Footer } from './components/layout/Footer';
 import { MoodCheckInModal } from './components/mood/MoodCheckInModal';
 import { UshaFloatingWidget } from './components/chat/UshaFloatingWidget';
 import { CookieConsentBanner } from './components/common/CookieConsentBanner';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { OfflineHandler } from './components/common/OfflineHandler';
 
 // Route-level Dynamic Code Splitting for Core Web Vitals & Instant LCP
 const LandingPage = lazy(() => import('./pages/LandingPage').then(m => ({ default: m.LandingPage })));
@@ -25,6 +27,8 @@ const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage').then(m 
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage').then(m => ({ default: m.VerifyEmailPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const SessionExpiredPage = lazy(() => import('./pages/SessionExpiredPage').then(m => ({ default: m.SessionExpiredPage })));
 
 // Minimalistic Page Transition Loader
 const PageSuspenseFallback: React.FC = () => (
@@ -73,6 +77,7 @@ const AppContent: React.FC = () => {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/session-expired" element={<SessionExpiredPage />} />
 
             {/* Protected Routes */}
             <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
@@ -83,31 +88,35 @@ const AppContent: React.FC = () => {
             <Route path="/insights" element={<ProtectedRoute><InsightsPage /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
 
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            {/* Error Handlers & Custom 404 Route */}
+            <Route path="/404" element={<NotFoundPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
       </main>
 
       <Footer />
 
-      {/* Global Modals & Floating Tools */}
+      {/* Global Modals, Offline Status & Floating Tools */}
       {user && <MoodCheckInModal />}
       <UshaFloatingWidget />
       <CookieConsentBanner />
+      <OfflineHandler />
     </div>
   );
 };
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <MoodProvider>
-        <Router>
-          <AppContent />
-        </Router>
-      </MoodProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MoodProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </MoodProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -39,9 +39,9 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         localStorage.removeItem('mindease_token');
         localStorage.removeItem('mindease_user');
-        // Do not redirect if on public page
-        if (!['/login', '/register', '/', '/terms', '/privacy', '/resources'].includes(window.location.pathname)) {
-          window.location.href = '/login';
+        // Redirect to custom Session Expired screen if on protected page
+        if (!['/login', '/register', '/', '/terms', '/privacy', '/resources', '/404', '/session-expired'].includes(window.location.pathname)) {
+          window.location.href = '/session-expired';
         }
       }
     }

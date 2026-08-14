@@ -9,7 +9,7 @@ export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   isProd: process.env.NODE_ENV === 'production',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
-  databaseUrl: process.env.DIRECT_URL || process.env.DATABASE_URL || 'postgresql://postgres:MindEaseDb2026@db.zuxnxwihlvgpquwrqlew.supabase.co:5432/postgres',
+  databaseUrl: process.env.DIRECT_URL || process.env.DATABASE_URL || 'postgresql://postgres.zuxnxwihlvgpquwrqlew:MindEaseDb2026@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres',
   
   jwt: {
     accessSecret: process.env.JWT_ACCESS_SECRET || 'mindease_super_secure_access_secret_key_change_in_production_32chars_min',

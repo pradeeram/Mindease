@@ -1,23 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 
 function getResolvedDatabaseUrl(): string {
-  const directFallback = 'postgresql://postgres:MindEaseDb2026@db.zuxnxwihlvgpquwrqlew.supabase.co:5432/postgres';
+  // IPv4 compatible Supabase connection for AWS Lambda / Vercel Serverless
+  const ipv4SupabaseUrl = 'postgresql://postgres.zuxnxwihlvgpquwrqlew:MindEaseDb2026@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres';
   let rawUrl = (process.env.DIRECT_URL || process.env.DATABASE_URL || '').replace(/^["']|["']$/g, '').trim();
 
-  if (!rawUrl || rawUrl.includes('file:')) {
-    return directFallback;
+  if (!rawUrl || rawUrl.includes('file:') || rawUrl.includes('localhost') || rawUrl.includes('db.zuxnxwihlvgpquwrqlew.supabase.co')) {
+    return ipv4SupabaseUrl;
   }
 
-  // Automatically convert Supabase pooler URL (:6543) to verified direct connection host (:5432)
-  try {
-    const poolerMatch = rawUrl.match(/postgres\.([a-z0-9]+):([^@]+)@[^:]+:6543\/postgres/i);
-    if (poolerMatch) {
-      const projectRef = poolerMatch[1] || 'zuxnxwihlvgpquwrqlew';
-      const password = poolerMatch[2];
-      return `postgresql://postgres:${password}@db.${projectRef}.supabase.co:5432/postgres`;
-    }
-  } catch (e) {
-    // Ignore parsing error
+  // If pointing to transaction pooler :6543, ensure pgbouncer parameter
+  if (rawUrl.includes(':6543') && !rawUrl.includes('pgbouncer=true')) {
+    rawUrl += (rawUrl.includes('?') ? '&' : '?') + 'pgbouncer=true&connection_limit=1';
   }
 
   return rawUrl;
